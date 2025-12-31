@@ -1,0 +1,9 @@
+{
+  "Food": ["Pizza", "Sushi", "Tacos", "Ramen", "Pancakes", "Burger", "Ice Cream", "Burrito"],
+  "Sports": ["Soccer", "Basketball", "Tennis", "Pickleball", "Baseball", "Boxing", "Volleyball", "Golf"],
+  "Places": ["Beach", "Airport", "Library", "Mall", "Hospital", "Gym", "Museum", "School"],
+  "Animals": ["Elephant", "Tiger", "Penguin", "Giraffe", "Dolphin", "Kangaroo", "Lion", "Koala"],
+  "Movies": ["Inception", "Titanic", "Avatar", "The Dark Knight", "Toy Story", "Interstellar", "Shrek", "Spider-Man"],
+  "Tech": ["iPhone", "Wi-Fi", "Laptop", "Instagram", "Snapchat", "AirPods", "Tesla", "Google"],
+  "People": ["Drake","Lebron James","Taylor Swift", "Tom Brady", "Elon Musk", "Donald Trump"]
+}
