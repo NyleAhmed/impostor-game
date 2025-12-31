@@ -165,7 +165,7 @@
   function rand(n) { return Math.floor(Math.random() * n); }
 
   async function loadWordPacks() {
-    const res = await fetch("words.json", { cache: "no-store" });
+    const res = await fetch("./words.json", { cache: "no-store" });
     if (!res.ok) throw new Error("Could not load words.json");
     WORDS = await res.json();
   }
@@ -370,16 +370,26 @@
   revealBtn.addEventListener("pointerleave", () => { holdEnd(); });
 
   // Boot
-  (async function boot() {
-    try {
-      await loadWordPacks();
-      initCategories();
-      generateNames(false);
-    } catch (err) {
-      console.error(err);
-      alert("Couldn't load words.json. Make sure it's in the same folder as index.html and you're running via Live Server or a hosted site.");
-    }
-  })();
+(async function boot() {
+  // ✅ Always show player name boxes no matter what
+  generateNames(false);
+
+  try {
+    await loadWordPacks();
+    initCategories();
+  } catch (err) {
+    console.error(err);
+
+    // Show a visible message instead of silently failing
+    const box = $("categoryList");
+    box.innerHTML = `
+      <div class="muted">
+        Couldn't load word packs.<br>
+        Make sure <b>words.json</b> is in the repo root.
+      </div>
+    `;
+  }
+})();
 </script>
 </body>
 </html>
