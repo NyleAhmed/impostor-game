@@ -215,4 +215,171 @@
     for (let i = 0; i < n; i++) {
       const row = document.createElement("div");
       row.className = "nameRow";
-      row.i
+      row.innerHTML = `
+        <div class="tag">P${i+1}</div>
+        <input id="name_${i}" placeholder="Player ${i+1} name" autocomplete="off">
+      `;
+      box.appendChild(row);
+
+      const input = document.getElementById("name_" + i);
+      if (prev[i] != null) input.value = prev[i];
+    }
+  }
+
+  function startRound() {
+    const n = parseInt($("players").value, 10);
+    const selectedCats = getSelectedCategories();
+
+    if (Number.isNaN(n) || n < 3 || n > 8) return alert("Choose 3–8 players.");
+    if (selectedCats.length === 0) return alert("Pick at least 1 category.");
+
+    // Ensure name boxes match player count right before starting
+    generateNames(true);
+
+    // Pick a random category from selected
+    const chosenCat = selectedCats[rand(selectedCats.length)];
+    const words = WORDS[chosenCat] || [];
+    if (words.length < 2) return alert(`"${chosenCat}" needs at least 2 words.`);
+
+    state.players = n;
+    state.names = Array.from({length:n}, (_,i) => (document.getElementById("name_"+i)?.value || "").trim() || `Player ${i+1}`);
+    state.chosenCategory = chosenCat;
+    state.word = words[rand(words.length)];
+    state.impostor = rand(n);
+    state.first = rand(n);
+    state.current = 0;
+    state.holding = false;
+
+    // ✅ NEW: read setting
+    state.showCategoryToImpostor = $("showCatToImpostor").checked;
+
+    hide("screen-setup");
+    hide("screen-rules");
+    hide("screen-final");
+    show("screen-reveal");
+
+    renderReveal();
+  }
+
+  function renderReveal() {
+    $("playerBadge").textContent = `${state.names[state.current]} (${state.current+1}/${state.players})`;
+    $("revealTitle").textContent = "Ready?";
+    $("revealHint").textContent = "Press and hold to reveal. Release to hide.";
+
+    hide("secretBox");
+    $("hideBtn").disabled = true;
+
+    $("secretSub").textContent = "";
+    $("secretMain").textContent = "";
+    $("secretNote").textContent = "";
+  }
+
+  function holdStart() {
+    if (state.holding) return;
+    state.holding = true;
+
+    const cat = state.chosenCategory;
+    const isImp = (state.current === state.impostor);
+
+    show("secretBox");
+    if (isImp) {
+      // ✅ NEW: optionally show category to impostor
+      $("secretSub").textContent = state.showCategoryToImpostor ? `Category: ${cat}` : "";
+      $("secretMain").textContent = "You are the IMPOSTOR";
+      $("secretNote").textContent = state.showCategoryToImpostor
+        ? "You know the category. Blend in and figure out the word."
+        : "Blend in and figure out the word.";
+    } else {
+      $("secretSub").textContent = `Category: ${cat}`;
+      $("secretMain").textContent = state.word;
+      $("secretNote").textContent = "Remember it, then release to hide.";
+    }
+
+    // ✅ bug fix: don't re-disable if already enabled; only run unlock delay if disabled
+    if ($("hideBtn").disabled) {
+      clearTimeout(state.holdTimer);
+      state.holdTimer = setTimeout(() => {
+        $("hideBtn").disabled = false;
+      }, 400);
+    }
+  }
+
+  function holdEnd() {
+    if (!state.holding) return;
+    state.holding = false;
+    hide("secretBox");
+    // (intentionally not clearing timeout)
+  }
+
+  function hidePass() {
+    if ($("hideBtn").disabled) return;
+
+    holdEnd();
+    state.current++;
+
+    if (state.current >= state.players) {
+      hide("screen-reveal");
+      show("screen-rules");
+      $("firstSpeaker").textContent = state.names[state.first];
+      return;
+    }
+    renderReveal();
+  }
+
+  function revealAnswer() {
+    hide("screen-rules");
+    show("screen-final");
+    $("finalCategory").textContent = state.chosenCategory;
+    $("finalWord").textContent = state.word;
+    $("finalImpostor").textContent = state.names[state.impostor];
+  }
+
+  function backToSetup() {
+    show("screen-setup");
+    hide("screen-reveal");
+    hide("screen-rules");
+    hide("screen-final");
+    holdEnd();
+  }
+
+  function playAgain() {
+    startRound();
+  }
+
+  // EVENTS
+  $("startBtn").addEventListener("click", startRound);
+  $("hideBtn").addEventListener("click", hidePass);
+  $("backBtn1").addEventListener("click", backToSetup);
+  $("backBtn2").addEventListener("click", backToSetup);
+  $("backBtn3").addEventListener("click", backToSetup);
+
+  $("revealAnswerBtn").addEventListener("click", revealAnswer);
+  $("playAgainBtn").addEventListener("click", playAgain);
+  $("playAgainBtn2").addEventListener("click", playAgain);
+
+  $("players").addEventListener("input", () => generateNames(true));
+
+  const revealBtn = $("revealBtn");
+  revealBtn.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    revealBtn.setPointerCapture?.(e.pointerId);
+    holdStart();
+  });
+  revealBtn.addEventListener("pointerup", (e) => { e.preventDefault(); holdEnd(); });
+  revealBtn.addEventListener("pointercancel", (e) => { e.preventDefault(); holdEnd(); });
+  revealBtn.addEventListener("pointerleave", () => { holdEnd(); });
+
+  // Boot
+  (async function boot() {
+    try {
+      await loadWordPacks();
+      initCategories();
+      generateNames(false);
+    } catch (err) {
+      console.error(err);
+      alert("Couldn't load words.json. Make sure it's in the same folder as index.html and you're running via Live Server or a hosted site.");
+    }
+  })();
+</script>
+</body>
+</html>
