@@ -62,10 +62,25 @@
     <div id="categoryList" class="categoryGrid"></div>
     <p class="muted" style="margin-top:8px;">A random category will be chosen from your selections each round.</p>
 
-    <label>Number of players (3–8)</label>
-    <input id="players" type="number" min="3" max="8" value="5" />
+<label>Number of players (3–8)</label>
 
-    <div id="namesContainer"></div>
+<input
+  id="players"
+  type="number"
+  min="3"
+  max="8"
+  step="1"
+  inputmode="numeric"
+  pattern="[0-9]*"
+  value="5"
+/>
+
+<div class="twoBtns">
+  <button type="button" id="minusBtn" class="secondary">−</button>
+  <button type="button" id="plusBtn" class="secondary">+</button>
+</div>
+
+<div id="namesContainer"></div>
 
     <!-- ✅ NEW OPTION -->
     <label>Impostor Settings</label>
@@ -358,7 +373,19 @@
   $("playAgainBtn2").addEventListener("click", playAgain);
 
   $("players").addEventListener("input", () => generateNames(true));
+  $("minusBtn").addEventListener("click", () => {
+  let v = parseInt($("players").value || "5", 10);
+  v = Math.max(3, v - 1);
+  $("players").value = v;
+  generateNames(true);
+  });
 
+  $("plusBtn").addEventListener("click", () => {
+  let v = parseInt($("players").value || "5", 10);
+  v = Math.min(8, v + 1);
+  $("players").value = v;
+  generateNames(true);
+  });
   const revealBtn = $("revealBtn");
   revealBtn.addEventListener("pointerdown", (e) => {
     e.preventDefault();
